@@ -1,0 +1,91 @@
+﻿# По кривой дорожке макросов в обход Норм. MACROS. Execute(,) forbidden(,) to pardon
+
+[English version] () is just below.
+
+[Norm 2.0.2](https://elearning.intra.42.fr/notions/the-norm/subnotions/la-norme/pdfs/norm)
+> II.7
+> Macros and Pre-processors
+> Mandatory part
+> ...
+> • All #define created to bypass the norm and/or obfuscate code are forbidden. This point must be checked by a human».
+> > Перевод  
+> > • Запрещены все #define, созданные для обхода Норм или запутывания кода. Этот момент должен быть проверен человеком.
+
+[Предыдущее утверждение правила](https://forum.intra.42.fr/topics/20404/messages/last) разобрано в другой статье.
+
+Прошу вас заметить, что правило состоит из двух частей: «обход Норм», «запутывание кода». Предлагаю разобраться с каждой в отдельности.
+
+**!** _Условные обозначения. В статье будем называть и object-like macros и function-like macros одним термином «макрос». При этом первые будем обозначать как константы (постоянные) препроцессора, а второй, как переменные препроцессора._ **!**
+~~~
+#define <identifier> <replacement token list>                    // object-like macro
+#define <identifier>(<parameter list>) <replacement token list>  // function-like macro, note parameters
+~~~
+
+## «обход Норм»
+Я настаиваю, что определение два эквивалентно определению один: 
+1. «**_Запрещены все #define, созданные для обхода Норм_**».
+2. **_Запрещены все макросы, использование которых привело к тому, что код, который не нарушает нормы, после макроподстановок нарушает их._**
+
+Макроподстановку можете сделать в ручную, можете в уме, а по меньшей мере большую часть этоq работы можно поручить машине. Используйте команду gcc с параметрами  -E для вывода на экран результатов макроподстановки (можете потом удалить лишние записи с помощью sed или grep, если найдёте хорошие комбинации, прошу написать мне), или -E -dM, чтобы получить перечень всех макросов, а затем использовать это перечень для компиляции некоторого кода в [специализированном для этого сервисе](https://godbolt.org/) (выберите gcc и -E)
+~~~bash
+gcc your_function.c -E -dM
+~~~
+Теперь можно проверить код, нарушает ли он Норму. Кстати, уверен, что эту часть всё таки можно автоматизировать. Жаль, что это до сих пор не сделано. Но может у вас это получиться!
+
+### Что чаще всего нарушают, использую макросы:
+1. II.2 Formatting Mandatory part
+> **One instruction per line**.
+>> 
+~~~C
+#define SWAP(a,b,type) {type ttttttttt=a;a=b;b=ttttttttt;}
+~~~
+~~~C
+#define SWAP(a, b) do { typeof(a) temp = a; a = b; b = temp; } while (0)
+~~~
+~~~C
+#define MACRO(num, str) {printf("%d", num); printf(" is");}
+~~~
+2. II.7 Macros and Pre-processors Mandatory part
+> **Multiline macros are forbidden.**
+>> 
+~~~C
+#define MACRO(num, str) {\
+printf("%d", num);\
+printf(" is");\
+}
+~~~
+~~~C
+#define MACRO "some very very very very very very very \
+long text"
+~~~
+3. Это нарушение ситуативно (Можете прислать пример, когда это будет ошибкой, и пример, когда не будет.). II.2 Formatting Mandatory part
+> **Each line must be at most 80 columns wide, comments included. Warning : a tabulation doesn’t count as a column, but as the number of spaces it represents.**
+
+4. [Обсуждаемый пункт правил](https://forum.intra.42.fr/topics/20404/messages/last), скорее всего всё таки запрещает такие макроподстановки констант препроцессора: II.7 Macros and Pre-processors Mandatory part.
+> **Preprocessor constants (or #define) you create must be used only for associate
+literal and constant values.**  
+>> 
+~~~C
+#define IF if(
+#define THEN ) {
+#define FI }
+#define FALL_THROUGH if(false)
+#define OR : case
+#define DEFAULT break; default
+#define WHICH { if(false) {
+#define END_WHICH } }
+…
+~~~  
+
+Этот пункт сорее всего будет задействован, чтобы превратить синтаксис Си в похожий на синтаксис другого языка. Встретим его в следующей части статьи. :smile:
+
+## «запутывание кода»
+Это довольно широкая тема. Да, она не имеет строгих правил, но пожалуйста, не сочтите, что это значит, что разрешено или тем хуже запрещено вообще всё что угодно, что укладывается в прочие нормы. Интуиция многих миллионов программистов на Си и подобных языках за годы выработала прримеры хорошей и плохой практики использорвания макросов. Почерпнуть эти бесценные знания, можно с помощью чтения статей и обсуждений в сети Интернет. Пожалуй раскрыть эту тему хорошо, заслуживает самостоятельной статьи. Здесь я ограничусь приведением нескольких ссылок:
+1. [Why are preprocessor macros evil and what are the alternatives?](https://stackoverflow.com/questions/14041453/why-are-preprocessor-macros-evil-and-what-are-the-alternatives)
+2. [What is the worst real-world macros/pre-processor abuse you've ever come across?](https://stackoverflow.com/questions/652788/what-is-the-worst-real-world-macros-pre-processor-abuse-youve-ever-come-across)
+3. [Using Preprocessors to change language Syntax [closed]](https://stackoverflow.com/questions/7311544/using-preprocessors-to-change-language-syntax)
+4. [How to properly use macros in C](https://pmihaylov.com/macros-in-c/)
+5. [Macros: why they're evil](https://scienceblogs.com/goodmath/2007/12/17/macros-why-theyre-evil)
+6. [Code Craft: When #define is Considered Harmful](https://hackaday.com/2015/10/16/code-craft-when-define-is-considered-harmful/)
+7. [Why is it a bad practice to use C or C++ macros?](https://www.quora.com/Why-is-it-a-bad-practice-to-use-C-or-C++-macros)
+

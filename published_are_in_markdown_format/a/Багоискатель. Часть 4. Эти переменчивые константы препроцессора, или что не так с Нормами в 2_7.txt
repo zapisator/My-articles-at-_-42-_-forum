@@ -1,0 +1,441 @@
+﻿# Эти переменчивые константы препроцессора.
+
+> Программисты Си, дойдя до определённого уровня квалификации, обязательно сталкиваются с одной из особенностей этого языка — макросами. Почти во всех других языках аналога макросов нет. И это неспроста. Использование макросов может оказаться весьма небезопасным. В них скрывается ряд особенностей, специфика которых не всегда лежит на поверхности. 
+##### Такую, мотивирующую к регулированию использования макросов информацию, можно найти на одном из [сайтов](https://tproger.ru/translations/c-macro/). 
+
+Мы поговорим о смысле участка правила «II.7 Macros and Pre-processors. Mandatory part» Норм 2.0.2 английской и французской версий.  
+__Английская версия Норм 2.0.2__
+> - Preprocessor constants (or #define) you create must be used only for associate literal and constant values.
+
+__Французская версия Норм 2.0.2__
+> - Les constantes de préprocesseur (#define) que vous créez ne doivent être utilisés
+que pour associer des valeurs littérales et constantes, et rien d’autre.
+
+Вам всё понятно в этом правиле? Я знаю не мало людей, кто ответить да. Скажите, а если предложение понятно в целом, это должно быть связано с тем, что понятны его части? Я считаю, что да. Или вы могли бы сказать, что не понимая деталей предложения вы тем не менее с высокой вероятностью верно понимаете о чём оно? В этой статье мистических прозрений не будет, только здравый смысл, логика и рациональность. Приступаем.
+
+## Вопросы на которые предстоит ответить:
+- как его перевести на русский язык.
+- из каких частей состоит предложение.
+- что означает каждая часть предложения.
+
+### Переводы.
+__Перевод с английского.__
+> - Константы препроцессора (или #define), которые вы создаете, должны использоваться только для связывания литеральных и константных значений.
+
+__Перевод с французского.__
+> - Созданные вами константы препроцессора (#define) должны использоваться только для связывания литеральных и константных значений, и ничего больше.
+
+### Разбор [предложения на части](https://en.wikipedia.org/wiki/Phrase_structure_rules)
+Если вы хотите, можете прибегнуть к помощи роботов, чтобы проанализировать предложение: 
+[![дерево синтаксического разбора предложения. Вариант 1.](https://cdn1.savepice.ru/uploads/2019/3/20/a791fbdc13837bcae4f63079e5ac2f07-full.png)](https://www.link.cs.cmu.edu/cgi-bin/link/construct-page-4.cgi#submit)    
+[![Другой способ нарисовать дерево синтаксического разбора.](https://cdn1.savepice.ru/uploads/2019/3/20/ee5710384ba193cfcba3b8a2684c9f66-full.png)](https://visl.sdu.dk/visl/en/parsing/automatic/trees.php)  
+[Расшифровка.](https://yohasebe.com/rsyntaxtree/)  
+[дерево синтаксического разбора предложения. Вариант 2.](https://visl.sdu.dk/visl2/info/world_of_grammar.pdf )  
+
+Предложение:
+- Группа подлежащего «Preprocessor constants (or #define) you create».
+ - ...
+- Группа сказуемого «must be used».
+ - ...
+- Группа обстоятельства «only for associate literal and constant values».
+ - …
+
+## Далее по очереди разбирём каждую группы.
+
+### Предварительные соображения.
+
+Что входит в препроцессор:
+> Препроцессором выполняются следующие действия: 
+> - замена соответствующих диграфов и триграфов на эквивалентные символы «#» и «\»; - - - - - удаление экранированных символов перевода строки;
+> - замена строчных и блочных комментариев пустыми строками (с удалением окружающих пробелов и символов табуляции);
+> - вставка (включение) содержимого произвольного файла (#include);
+> - макроподстановки (#define);
+> - условная компиляция (#if, #ifdef, #elif, #else, #endif);
+> - вывод сообщений (#warning, #error).
+
+Особенно остановимся на пункте «макроподстановки (#define);» Определим, что такое макрос. 
+> [Макрокоманда, макроопределение или мáкрос](https://ru.wikipedia.org/wiki/%D0%9C%D0%B0%D0%BA%D1%80%D0%BE%D0%BA%D0%BE%D0%BC%D0%B0%D0%BD%D0%B4%D0%B0) — программный алгоритм действий, записанный пользователем. Часто макросы применяют для выполнения рутинных действий. А также макрос — это символьное имя в шаблонах, заменяемое при обработке препроцессором на последовательность символов, например: фрагмент html-страницы в веб-шаблонах, или одно слово из словаря синонимов в синонимизаторах. 
+> Корректный перевод термина с английского — «макрокоманда». Слово «макрос» (от macros — формы множественного числа слова macro) получило распространение благодаря использованию в локализованных продуктах американской корпорации Microsoft
+
+
+Синтаксис макроподстановок определён [стандартом Си](http://read.pudn.com/downloads133/doc/565041/ANSI_ISO%2B9899-1990%2B%5B1%5D.pdf): «6.8 Preprocessing directives. 6.8.3 Macro replacement». Если нарисовать эту картинку крупными мазками, получиться следующее:
+
+>  1. `#define <определение> <список заменяющих лексем>` // константы препроцессора (object-like macro)
+>  2. `#define <определение>(список параметров) <список заменяющих лексем>` // макросы (function-like macro)
+
+Какие объекты слагают множества, в которых макроподстановка подбирает соотвествия. [стандартом Си](http://read.pudn.com/downloads133/doc/565041/ANSI_ISO%2B9899-1990%2B%5B1%5D.pdf)
+«6.1 Lexical elements. Syntax
+
+1. token
+	1. keyword
+	1. identifier
+	1. constant
+	1. string-literal
+	1. operator
+	1. punctuator
+1. preprocessing-token .
+	1. header-name
+	1. identifier
+	1. pp-number
+	1. character-constant
+	1. string-literal
+	1. operator
+	1. punctuator
+	1. each non-white-space character that cannot be one of the above»
+
+### Группа подлежащего «Preprocessor constants (or #define) you create».
+Основу по данному вопросу слагает раздел стандарта Си «6.8.3 Macro replacement». «Preprocessor constants» стандартом не определён. Таким образом можно лишь надеяться понять этот термин, через исследование словоупотребления. Вряд ли найдётся другой источник словоупотребеления отличный от поисковика в интеренете.
+
+Опрелделяют явно или в контексте как object-like macro, отсюда же function-lile macro нередко определён в этих источниках как макрос. [1](https://habr.com/ru/post/246971/), [2](https://www.cprogramming.com/tutorial/cpreprocessor.html), [3](https://ru.wikipedia.org/wiki/Препроцессор_Си)
+В 3 «preprocessor constant» используется как синоним «symbolic constants», как и в [4](https://books.google.ru/books?id=PsRKDAAAQBAJ&pg=PA56&lpg=PA56&dq=Preprocessor+constants&source=bl&ots=ztzrlYndAX&sig=ACfU3U2dsc-ibcVM-ucYT_Cbg0SSja4T6A&hl=ru&sa=X&ved=2ahUKEwi1jt7ChI_hAhXxlYsKHTlFDCo4ChDoATACegQIBhAB#v=onepage&q=Preprocessor%20constants&f=false), [5](https://www.quora.com/What-are-symbolic-constants-in-c-How-you-declare-them), [6](https://stackoverflow.com/questions/19379353/symbolic-constants-in-c-define-statement), [7](http://meramind.com/c-programming/symbolic-constants-c/)
+
+> Symbolic Constants in C – Symbolic Constant is a name that substitutes for a sequence of characters or a numeric constant, a character constant or a string constant.
+> Перевод: 
+>>Символические константы в C - Символическая константа - это имя, которое заменяет последовательность символов или числовую константу, символьную константу или строковую константу.
+
+Таким образом хотя «preprocessor constant» не определён стандарте Си, существует языковая практика, вводящая определение это выражения, а также его синоним: «Символические константы в C - Символическая константа - это имя, которое заменяет последовательность символов или числовую константу, символьную константу или строковую константу»
+
+### Группа сказуемого «must be used».
+Раздел мне кажется предельно очевидным, потому пояснения по нему я не даю.
+
+### Группа обстоятельства «only for associate literal and constant values».
+
+#### associate
+Неясно значение слова «associate». Это слово может быть определено и как прилагательное и как глагол. Однако, при таком переводе «must be used for associate object one and object two» Гугл трактует это слово как глагол «должен использоваться для связывания объекта один и объекта два».
+
+#### literal and constant values 
+##### literal
+Это слово встречается в стандарте 28 раз. 27 раз в связке «string literal» и 1 раз как прилагательное «The success of literal matches» в значении буквальное. Похоже ни одно из этих значений не может быть принято как использованное в исследуемом предложении. Придётся обратиться к практике словоупотребелния в сети Интернет.
+##### [literal](https://en.wikipedia.org/wiki/Literal_%28computer_programming%29) and [constant](https://en.wikipedia.org/wiki/Constant_%28computer_programming%29) values 
+В сети не мало использования обоих терминов как синонимов:
+- Константа есть то же, что литерал. 
+«Constants refer to fixed values that the program may not alter during its execution. These fixed values are also called literals». [1](https://www.tutorialspoint.com/cprogramming/c_constants.htm), [2](https://www.geeksforgeeks.org/constants-in-c/), [3](https://www.w3schools.in/c-tutorial/constants/), [4](https://codeforwin.org/2017/08/literals-c-programming.html), [5](https://www.quora.com/What-are-constants-in-C)
+Так мы получаем Integer Literals, Floating-point Literals, Character Constants, String Literals.
+- Константа включает литерал, но не равен ему. Константа — есть некоторое имя для непосредственного значения, которым яваляется литерал.
+[1](https://stackoverflow.com/questions/11732795/are-the-literal-and-constant-the-same-concept-in-c), [2](https://www.diffen.com/difference/Constant_vs_Literal), [3](https://www.tutorialspoint.com/What-is-the-difference-between-literal-and-constant-in-Cplusplus)
+- Расширение представления о константе. В этой заметке рассуждают о литеральной (заданной непосредственно в коде) и символической (заданной опосредованно через препроцессор) константах.[«Summary: this tutorial introduces you to C constants including literal constants and symbolic constants.»](http://www.zentut.com/c-tutorial/c-constants/)
+
+#### Обобщаем раздел для «Группы обстоятельства»
+Хотя всё равно уверенности в найденом понимании данной фразы будет не максимальным, наибольший смысл «only for associate literal and constant values» имеет: только для связывания постоянных с буквальными значениями. А если привлекать ещё перевод французкого текста, то:  только для связывания постоянных значений с буквальными, и только их. (где термин «постоянная» имеет смысл служить посредником для буквального значения, что то же -- для литерала).
+
+## Заключение.
+К сожалению, наиболее важный документ для регламентации проектирования программ студентами школы «42» содержит участки, которые выражены очень ненадёжно, многозначность которых достигает десятков вариантов. Я считаю, что исследуемый в этой статье пункт Норм должен быть переписан так, чтобы иметь ясность и однозначность. 
+Я также предлагаю трактовку этого пункта правил, которая имеет по моему мнению наибольший смысл. Сначала предложу сложное предложение, а потом вариант с тем же смыслом, но разделённый на простые предложения. 
+## 1
+> Из двух возможных способов макроподстановок, который осуществляется директивой #define: объектоподобной (иначе называемой константой препроцессора или просто константой) и функциональной (часто называемой макросом), - константа может быть использована только для связывания постоянных значений (констант) с буквальными (литералами), и только их.
+
+## 2
+А если расшифровать подробно, не пытаясь сделать сверхсложное предложение, то выходит:
+> - Макроподстановка, осуществляется только директивой #define.
+> - Существует только два вида макроподстановок, вот их шаблоны:
+>		1. `#define <определение> <список заменяющих лексем>`                    // константы препроцессора (object-like macro)
+>		2. `#define <определение>(список параметров) <список заменяющих лексем>` // макросы (function-like macro)
+> - Литералы – это множество Integer Literals, Floating-point Literals, Character Constants, String Literals и никакие другие.
+> - Константы – есть множество имён литералов.
+> -  Константы препроцессора могут быть использована только для связывания постоянных значений (констант) с буквальными (литералами), и только их.
+
+Последнее предложение выглядит очень похожим на то, которое уже есть в пункте правил. Не обманывайте себя, я это сходство сделал намеренно. Важно помнить, что без предварительных пояснений, значение последнего простого предложения остаётся очень туманным. 
+
+## 3
+Ещё одна попытка определить исследуемый пункт правил.
+> Для записей, соответствующих шаблону `#define <определение> <список заменяющих лексем>` (`#define <identifier> <replacement token list>`), множество <список заменяющих лексем> может быть пресдтавлено только литералом или определением, которое рекурсивно соответствует данному шаблону, при том, что базой рекурсии окажется литерал.
+# Эти переменчивые константы препроцессора.
+
+> Программисты Си, дойдя до определённого уровня квалификации, обязательно сталкиваются с одной из особенностей этого языка — макросами. Почти во всех других языках аналога макросов нет. И это неспроста. Использование макросов может оказаться весьма небезопасным. В них скрывается ряд особенностей, специфика которых не всегда лежит на поверхности. 
+##### Такую, мотивирующую к регулированию использования макросов информацию, можно найти на одном из [сайтов](https://tproger.ru/translations/c-macro/). 
+
+Мы поговорим о смысле участка правила «II.7 Macros and Pre-processors. Mandatory part» Норм 2.0.2 английской и французской версий.  
+__Английская версия Норм 2.0.2__
+> - Preprocessor constants (or #define) you create must be used only for associate literal and constant values.
+
+__Французская версия Норм 2.0.2__
+> - Les constantes de préprocesseur (#define) que vous créez ne doivent être utilisés
+que pour associer des valeurs littérales et constantes, et rien d’autre.
+
+Вам всё понятно в этом правиле? Я знаю не мало людей, кто ответить да. Скажите, а если предложение понятно в целом, это должно быть связано с тем, что понятны его части? Я считаю, что да. Или вы могли бы сказать, что не понимая деталей предложения вы тем не менее с высокой вероятностью верно понимаете о чём оно? В этой статье мистических прозрений не будет, только здравый смысл, логика и рациональность. Приступаем.
+
+## Вопросы на которые предстоит ответить:
+- как его перевести на русский язык.
+- из каких частей состоит предложение.
+- что означает каждая часть предложения.
+
+### Переводы.
+__Перевод с английского.__
+> - Константы препроцессора (или #define), которые вы создаете, должны использоваться только для связывания литеральных и константных значений.
+
+__Перевод с французского.__
+> - Созданные вами константы препроцессора (#define) должны использоваться только для связывания литеральных и константных значений, и ничего больше.
+
+### Разбор [предложения на части](https://en.wikipedia.org/wiki/Phrase_structure_rules)
+Если вы хотите, можете прибегнуть к помощи роботов, чтобы проанализировать предложение: 
+
+[дерево синтаксического разбора предложения. Вариант 1.][дерево синтаксического разбора предложения. Вариант 1.]
+[Расшифровка.][Расшифровка условных обозначений диаграммы по варианту 1]
+![Диаграмма 1. Дерево синтаксического разбора по первому варианту. ](https://cdn1.savepice.ru/uploads/2019/3/20/a791fbdc13837bcae4f63079e5ac2f07-full.png)
+
+[Другой способ нарисовать дерево синтаксического разбора.](https://visl.sdu.dk/visl/en/parsing/automatic/trees.php) 
+![Диаграмма 2.  Дерево синтаксического разбора по первому варианту. ](https://cdn1.savepice.ru/uploads/2019/3/20/ee5710384ba193cfcba3b8a2684c9f66-full.png)
+
+[дерево синтаксического разбора предложения. Вариант 2.][дерево синтаксического разбора предложения. Вариант 2.]
+
+[дерево синтаксического разбора предложения. Вариант 1.]: https://www.link.cs.cmu.edu/cgi-bin/link/construct-page-4.cgi#submit
+[Расшифровка условных обозначений диаграммы по варианту 1]: https://visl.sdu.dk/visl2/info/world_of_grammar.pdf 
+[дерево синтаксического разбора предложения. Вариант 2.]: https://yohasebe.com/rsyntaxtree/
+
+Предложение:
+- Группа подлежащего «Preprocessor constants (or #define) you create».
+ - ...
+- Группа сказуемого «must be used».
+ - ...
+- Группа обстоятельства «only for associate literal and constant values».
+ - …
+
+## Далее по очереди разбирём каждую группы.
+
+### Предварительные соображения.
+
+Что входит в препроцессор:
+> Препроцессором выполняются следующие действия: 
+> - замена соответствующих диграфов и триграфов на эквивалентные символы «#» и «\»; - - - - - удаление экранированных символов перевода строки;
+> - замена строчных и блочных комментариев пустыми строками (с удалением окружающих пробелов и символов табуляции);
+> - вставка (включение) содержимого произвольного файла (#include);
+> - макроподстановки (#define);
+> - условная компиляция (#if, #ifdef, #elif, #else, #endif);
+> - вывод сообщений (#warning, #error).
+
+Особенно остановимся на пункте «макроподстановки (#define);» Определим, что такое макрос. 
+> [Макрокоманда, макроопределение или мáкрос](https://ru.wikipedia.org/wiki/%D0%9C%D0%B0%D0%BA%D1%80%D0%BE%D0%BA%D0%BE%D0%BC%D0%B0%D0%BD%D0%B4%D0%B0) — программный алгоритм действий, записанный пользователем. Часто макросы применяют для выполнения рутинных действий. А также макрос — это символьное имя в шаблонах, заменяемое при обработке препроцессором на последовательность символов, например: фрагмент html-страницы в веб-шаблонах, или одно слово из словаря синонимов в синонимизаторах. 
+> Корректный перевод термина с английского — «макрокоманда». Слово «макрос» (от macros — формы множественного числа слова macro) получило распространение благодаря использованию в локализованных продуктах американской корпорации Microsoft
+
+
+Синтаксис макроподстановок определён [стандартом Си](http://read.pudn.com/downloads133/doc/565041/ANSI_ISO%2B9899-1990%2B%5B1%5D.pdf): «6.8 Preprocessing directives. 6.8.3 Macro replacement». Если нарисовать эту картинку крупными мазками, получиться следующее:
+
+>  1. `#define <определение> <список заменяющих лексем>` // константы препроцессора (object-like macro)
+>  2. `#define <определение>(список параметров) <список заменяющих лексем>` // макросы (function-like macro)
+
+Какие объекты слагают множества, в которых макроподстановка подбирает соотвествия. [стандартом Си](http://read.pudn.com/downloads133/doc/565041/ANSI_ISO%2B9899-1990%2B%5B1%5D.pdf)
+«6.1 Lexical elements. Syntax
+
+1. __token__
+	1. keyword
+	1. identifier
+	1. constant
+	1. string-literal
+	1. operator
+	1. punctuator
+1. __preprocessing-token__
+	1. header-name
+	1. identifier
+	1. pp-number
+	1. character-constant
+	1. string-literal
+	1. operator
+	1. punctuator
+	1. each non-white-space character that cannot be one of the above»
+
+
+### Группа подлежащего «Preprocessor constants (or #define) you create».
+Основу по данному вопросу слагает раздел стандарта Си «6.8.3 Macro replacement». «Preprocessor constants» стандартом не определён. Таким образом можно лишь надеяться понять этот термин, через исследование словоупотребления. Вряд ли найдётся другой источник словоупотребеления отличный от поисковика в интеренете.
+
+Опрелделяют явно или в контексте как object-like macro, отсюда же function-lile macro нередко определён в этих источниках как макрос. [1](https://habr.com/ru/post/246971/), [2](https://www.cprogramming.com/tutorial/cpreprocessor.html), [3](https://ru.wikipedia.org/wiki/Препроцессор_Си)
+В 3 «preprocessor constant» используется как синоним «symbolic constants», как и в [4](https://books.google.ru/books?id=PsRKDAAAQBAJ&pg=PA56&lpg=PA56&dq=Preprocessor+constants&source=bl&ots=ztzrlYndAX&sig=ACfU3U2dsc-ibcVM-ucYT_Cbg0SSja4T6A&hl=ru&sa=X&ved=2ahUKEwi1jt7ChI_hAhXxlYsKHTlFDCo4ChDoATACegQIBhAB#v=onepage&q=Preprocessor%20constants&f=false), [5](https://www.quora.com/What-are-symbolic-constants-in-c-How-you-declare-them), [6](https://stackoverflow.com/questions/19379353/symbolic-constants-in-c-define-statement), [7](http://meramind.com/c-programming/symbolic-constants-c/)
+
+> Symbolic Constants in C – Symbolic Constant is a name that substitutes for a sequence of characters or a numeric constant, a character constant or a string constant.
+> Перевод: 
+>>Символические константы в C - Символическая константа - это имя, которое заменяет последовательность символов или числовую константу, символьную константу или строковую константу.
+
+Таким образом хотя «preprocessor constant» не определён стандарте Си, существует языковая практика, вводящая определение это выражения, а также его синоним: «Символические константы в C - Символическая константа - это имя, которое заменяет последовательность символов или числовую константу, символьную константу или строковую константу»
+
+### Группа сказуемого «must be used».
+Раздел мне кажется предельно очевидным, поэтому пояснения по нему я не даю.
+
+### Группа обстоятельства «only for associate literal and constant values».
+
+#### associate
+Неясно значение слова «associate». Это слово может быть определено и как прилагательное и как глагол. Однако, при таком переводе «must be used for associate object one and object two» Гугл трактует это слово как глагол «должен использоваться для связывания объекта один и объекта два».
+
+#### literal and constant values 
+##### literal
+Это слово встречается в стандарте 28 раз. 27 раз в связке «string literal» и 1 раз как прилагательное «The success of literal matches» в значении буквальное. Похоже ни одно из этих значений не может быть принято как использованное в исследуемом предложении. Придётся обратиться к практике словоупотребелния в сети Интернет.
+##### [literal](https://en.wikipedia.org/wiki/Literal_%28computer_programming%29) and [constant](https://en.wikipedia.org/wiki/Constant_%28computer_programming%29) values 
+В сети не мало использования обоих терминов как синонимов:
+- Константа есть то же, что литерал. 
+«Constants refer to fixed values that the program may not alter during its execution. These fixed values are also called literals». [1](https://www.tutorialspoint.com/cprogramming/c_constants.htm), [2](https://www.geeksforgeeks.org/constants-in-c/), [3](https://www.w3schools.in/c-tutorial/constants/), [4](https://codeforwin.org/2017/08/literals-c-programming.html), [5](https://www.quora.com/What-are-constants-in-C)
+Так мы получаем Integer Literals, Floating-point Literals, Character Constants, String Literals.
+- Константа включает литерал, но не равен ему. Константа — есть некоторое имя для непосредственного значения, которым яваляется литерал.
+[1](https://stackoverflow.com/questions/11732795/are-the-literal-and-constant-the-same-concept-in-c), [2](https://www.diffen.com/difference/Constant_vs_Literal), [3](https://www.tutorialspoint.com/What-is-the-difference-between-literal-and-constant-in-Cplusplus)
+- Расширение представления о константе. В этой заметке рассуждают о литеральной (заданной непосредственно в коде) и символической (заданной опосредованно через препроцессор) константах.[«Summary: this tutorial introduces you to C constants including literal constants and symbolic constants.»](http://www.zentut.com/c-tutorial/c-constants/)
+
+#### Обобщаем раздел для «Группы обстоятельства»
+Хотя всё равно уверенности в найденом понимании данной фразы будет не максимальным, наибольший смысл «only for associate literal and constant values» имеет: только для связывания постоянных с буквальными значениями. А если привлекать ещё перевод французкого текста, то:  только для связывания постоянных значений с буквальными, и только их. (где термин «постоянная» имеет смысл служить посредником для буквального значения, что то же -- для литерала).
+
+## Заключение.
+К сожалению, наиболее важный документ для регламентации проектирования программ студентами школы «42» содержит участки, которые выражены очень ненадёжно, многозначность которых достигает десятков вариантов. Я считаю, что исследуемый в этой статье пункт Норм должен быть переписан так, чтобы иметь ясность и однозначность. 
+Я также предлагаю трактовку этого пункта правил, которая имеет по моему мнению наибольший смысл. Сначала предложу сложное предложение, а потом вариант с тем же смыслом, но разделённый на простые предложения. 
+## 1
+> Из двух возможных способов макроподстановок, который осуществляется директивой #define: объектоподобной (иначе называемой константой препроцессора или просто константой) и функциональной (часто называемой макросом), - константа может быть использована только для связывания постоянных значений (констант) с буквальными (литералами), и только их.
+
+## 2
+А если расшифровать подробно, не пытаясь сделать сверхсложное предложение, то выходит:
+> - Макроподстановка, осуществляется только директивой #define.
+> - Существует только два вида макроподстановок, вот их шаблоны:
+>		1. `#define <определение> <список заменяющих лексем>`                    // константы препроцессора (object-like macro)
+>		2. `#define <определение>(список параметров) <список заменяющих лексем>` // макросы (function-like macro)
+> - Литералы – это множество Integer Literals, Floating-point Literals, Character Constants, String Literals и никакие другие.
+> - Константы – есть множество имён литералов.
+> -  Константы препроцессора могут быть использована только для связывания постоянных значений (констант) с буквальными (литералами), и только их.
+
+Последнее предложение выглядит очень похожим на то, которое уже есть в пункте правил. Не обманывайте себя, я это сходство сделал намеренно. Важно помнить, что без предварительных пояснений, значение последнего простого предложения остаётся очень туманным. 
+
+## 3
+Ещё одна попытка определить исследуемый пункт правил.
+> Для записей, соответствующих шаблону `#define <определение> <список заменяющих лексем>` (`#define <identifier> <replacement token list>`), множество <список заменяющих лексем> может быть пресдтавлено только литералом или определением, которое рекурсивно соответствует данному шаблону, при том, что базой рекурсии окажется литерал.
+
+# These changeable preprocessor constants.
+
+> C programmers, having reached a certain level of qualification, will definitely encounter one of the features of this language - macros. Almost all other languages ​​have no analog macros. And this is no accident. Using macros can be very insecure. They hide a number of features, the specifics of which do not always lie on the surface.
+##### Such motivation for regulating the use of macros information can be found on one of the [sites] (https://tproger.ru/translations/c-macro/).
+
+We will talk about the meaning of the rule section “II.7 Macros and Pre-processors. Mandatory part "Norm 2.0.2 English and French versions.
+__English version of Standards 2.0.2__
+> - Preprocessor constants (or #define) you create must be used only for associate literal and constant values.
+
+__French version of Standards 2.0.2__
+> - Les constantes de préprocesseur (#define) que vous créez ne doivent être utilisés que pour associer des valeurs littérales et constantes, et rien d’autre.
+
+Do you understand everything in this rule? I know quite a few people who answer yes. Tell me, if the sentence is understandable in general, should it be related to the fact that its parts are clear? I think yes. Or you could say that without understanding the details of the sentence, you nevertheless with a high probability truly understand what it is about? In this article mystical insights will not be, only common sense, logic and rationality. Getting started.
+
+## Questions to answer:
+- how to translate it into Russian.
+- what parts is the proposal.
+- what each part of a sentence means.
+
+### Translations.
+__Translation from English.__
+> - The preprocessor constants (or #define) that you create should be used only to bind literal and constant values.
+
+__ Translated from French .__
+> - The preprocessor constants you create (#define) should only be used to bind literal and constant values, and nothing more.
+
+### Analysis [offers for parts](https://en.wikipedia.org/wiki/Phrase_structure_rules)
+If you want, you can resort to using robots to analyze the sentence:
+
+[tree parsing sentences. Option 1.][Tree parsing sentences. Option 1.]
+[Decoding.][Decoding of the legend of the diagram for option 1]
+![Diagram 1. Tree of the syntactic analysis by the first variant.](https://cdn1.savepice.ru/uploads/2019/3/20/a791fbdc13837bcae4f63079e5ac2f07-full.png)
+
+[Another way to draw a parse tree.](Https://visl.sdu.dk/visl/en/parsing/automatic/trees.php)
+![Diagram 2. Tree of the syntactic analysis by the first variant.](https://cdn1.savepice.ru/uploads/2019/3/20/ee5710384ba193cfcba3b8a2684c9f66-full.png)
+
+[tree parsing sentences. Option 2.][Tree parsing sentences. Option 2.]
+
+[tree parsing sentences. Option 1.]: https://www.link.cs.cmu.edu/cgi-bin/link/construct-page-4.cgi#submit
+[Explanation of the legend of the diagram for option 1]: https://visl.sdu.dk/visl2/info/world_of_grammar.pdf
+[tree parsing sentences. Option 2.]: https://yohasebe.com/rsyntaxtree/
+
+Sentence:
+- The group of the subject “Preprocessor constants (or # define) you create”.
+ - ...
+- The group of the predicate "must be used".
+ - ...
+- The group of circumstances "only for associate literal and constant values".
+ - ...
+
+## Then we sort through each group in turn.
+
+### Preliminary considerations.
+
+What is included in the preprocessor:
+> Preprocessor performs the following actions:
+> - replacement of the corresponding digraphs and trigraphs with the equivalent symbols "#" and "\"; - - - - - remove escaped line feed characters;
+> - replacing line and block comments with empty lines (with removal of surrounding spaces and tabs);
+> - insert (enable) the contents of an arbitrary file (#include);
+> - macro substitutions (#define);
+> - conditional compilation (#if, #ifdef, #elif, #else, #endif);
+> - output messages (#warning, #error).
+
+Especially we will focus on the “macro-substitution (#define);” clause. We define what a macro is.
+> [Macro, Macro, or Macro](https://ru.wikipedia.org/wiki/%D0%9C%D0%B0%D0%BA%D18080BD%B D0% BC% D0% B0% D0% BD% D0% B4% D0% B0) is a software algorithm for actions recorded by the user. Often, macros are used to perform routine actions. Also, a macro is a symbolic name in templates, which is replaced by a preprocessor when processed by a sequence of characters, for example: a fragment of an html page in web templates, or one word from the dictionary of synonyms in synonymizers.
+> Correct translation of the term from English - "macro". The word "macro" (from macros - the plural form of the word macro) has become widespread due to the use of Microsoft in localized products
+
+The syntax of macro substitutions is defined by the [C standard](http://read.pudn.com/downloads133/doc/565041/ANSI_ISO%2B9899-1990%2B%5B1%5D.pdf): “6.8 Preprocessing directives. 6.8.3 Macro replacement. If you draw this picture with large strokes, you get the following:
+
+> 1. `#define <definition> <list of replacing tokens>` // preprocessor constants (object-like macro)
+> 2. `#define <definition>(list of parameters) <list of replacing tokens>` // macros (function-like macro)
+
+What objects make up the set in which the macro substitution matches [standard C](http://read.pudn.com/downloads133/doc/565041/ANSI_ISO%2B9899-1990%2B%5B1%5D.pdf)
+"6.1 Lexical elements. Syntax
+
+1. __token__
+	1. keyword
+	1. identifier
+	1. constant
+	1. string-literal
+	1. operator
+	1. punctuator
+1. __preprocessing-token__
+	1. header-name
+	1. identifier
+	1. pp-number
+	1. character-constant
+	1. string-literal
+	1. operator
+	1. punctuator
+	1. each one of the above non-white-space character"
+
+
+### Group of the subject “Preprocessor constants (or #define) you create”.
+The basis for this issue is the section of C standard "6.8.3 Macro replacement". "Preprocessor constants" standard is not defined. Thus, one can only hope to understand this term, through the study of word usage. It is unlikely that there is another source of word usage other than search engine on the Internet.
+
+They are defined explicitly or in the context as an object-like macro, from which the function-like macro is often defined in these sources as a macro. [1](https://habr.com/ru/post/246971/), [2](https://www.cprogramming.com/tutorial/cpreprocessor.html), [3](https: // en .wikipedia.org / wiki / Preprocessor_C)
+In 3, “preprocessor constant” is used as a synonym for “symbolic constants”, as in [4](https://books.google.com/books?id=PsRKDAAAAQBAJ&pg=PA56&lpg=PA56&dq=Preprocessor+constants&source=blotshozzzzrlYndAXe -ibcVM-ucYT_core you-declare-them), [6](https://stackoverflow.com/questions/19379353/symbolic-constants-in-c-define-statement), [7](http://meramind.com/c- programming / symbolic-constants-c /)
+
+> Symbolic Constants in C |
+>> Symbolic constants in C - Symbolic constant is a name that replaces a sequence of characters or a numeric constant, a symbolic constant or a string constant.
+
+Thus, although the “preprocessor constant” is not defined by the C standard, there is a language practice that introduces the definition of this expression, as well as its synonym: “Symbolic constants in C - Symbolic constant is a name that replaces a sequence of characters or a numeric constant, a symbolic constant or a string constant
+
+    1. ### The group of the predicate must be used.
+The section seems very obvious to me, so I do not give explanations on it.
+
+### Group circumstances "only for associate literal and constant values".
+
+#### associate
+The meaning of the word associate is unclear. This word can be defined as both an adjective and a verb. However, with this translation of “must be used for associate object one and object two”, Google interprets this word as a verb “should be used to link object one and object two”.
+
+#### literal and constant values
+##### literal
+This word is found in the standard 28 times. 27 times in the “string literal” bundle and 1 time as the adjective “The success of literal matches” in the literal meaning. It seems that none of these values ​​can be taken as used in the proposal. We'll have to turn to the practice of word usage on the Internet.
+##### [literal](https://en.wikipedia.org/wiki/Literal_%28computer_programming%29) and [constant](https://en.wikipedia.org/wiki/Constant_%28computer_programming%29) values
+The network is not a little use of both terms as synonyms:
+- Constant is the same as literal.
+“Constants refer to fixed values ​​for the program. These fixed values ​​are also called literals. ” [1](https://www.tutorialspoint.com/cprogramming/c_constants.htm), [2](https://www.geeksforgeeks.org/constants-in-c/), [3](https: / /www.w3schools.in/c-tutorial/constants/), [4](https://codeforwin.org/2017/08/literals-c-programming.html), [5](https: // www. quora.com/What-are-constants-in-C)
+So we get Integer Literals, Floating-point Literals, Character Constants, String Literals.
+- Constant includes literal, but is not equal to it. A constant is some name for an immediate value that is a literal.
+[1](https://stackoverflow.com/questions/11732795/are-the-literal-and-constant-the-same-concept-in-c), [2](https://www.diffen.com / difference / Constant_vs_Literal), [3](https://www.tutorialspoint.com/What-is-the-difference-between-literal-and-constant-in-Cplusplus)
+- Expanding the idea of ​​a constant. This article discusses the literal (specified directly in the code) and the symbolic (specified indirectly through the preprocessor) constants. ["Summary: this tutorial introduces the literal constants and symbolic constants."](Http: //www.zentut .com / c-tutorial / c-constants /)
+
+#### We summarize the section for the "group of circumstances"
+Although anyway confidence in the found understanding of this phrase will not be maximal, the greatest meaning of “only for associate literal and constant values” is: only for linking the constants with literal values. And if you involve another translation of the French text, then: only to link constant values ​​with literal ones, and only them. (where the term "constant" makes sense to serve as an intermediary for a literal meaning, which is the same for a literal).
+
+## Conclusion.
+Unfortunately, the most important document for the regulation of the design of programs by students of the school “42” contains sections that are expressed very unreliably, the ambiguity of which reaches dozens of options. I believe that the Norms in this article should be rewritten so that they are clear and unambiguous.
+I also propose the interpretation of this point of the rules, which, in my opinion, has the greatest meaning. At first I will offer a complex sentence, and then a variant with the same meaning, but divided into simple sentences.
+## 1
+> Of the two possible ways of macro-substitutions, which is implemented by the #define directive: an object-like (otherwise called a preprocessor constant or just a constant) and a functional (often called a macro), the constant can only be used to associate constant values (constants) with literal, and only them.
+
+## 2
+And if you decrypt in detail, without trying to make a super-complex sentence, it turns out:
+> - Macro substitution, performed only with the #define directive.
+> - There are only two types of macro substitutions, here are their templates:
+>	1. `#define <definition> <list of replacing tokens>` // preprocessor constants (object-like macro)
+>	2. `#define <definition>(list of parameters) <list of replacing tokens>` // macros (function-like macro)
+> - Literals are a mathematical set of Integer Literals, Floating-point Literals, Character Constants, String Literals and no others.
+> - Constants are a mathematical set of literal names.
+> - The preprocessor constants can only be used to associate constant values ​​(constants) with literal (literals), and only them.
+
+The last sentence looks very similar to the one already in the paragraph of the rules. Do not be fooled, I made this similarity intentionally. It is important to remember that without preliminary explanations, the value of the last simple sentence remains very vague.
+
+## 3
+Another attempt to determine the item under study rules.
+> For entries matching the pattern `#define <identifier> <replacement token list>`, the set <list of replacing tokens> can only be replaced by a literal or definition that recursively matches this pattern, while the literal is the base of the recursion.

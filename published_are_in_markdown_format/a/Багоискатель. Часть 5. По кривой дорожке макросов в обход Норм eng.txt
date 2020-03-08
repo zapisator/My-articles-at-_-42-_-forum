@@ -1,0 +1,87 @@
+﻿#MACROS. Execute(,) forbidden(,) to pardon
+
+[Norm 2.0.2](https://elearning.intra.42.fr/notions/the-norm/subnotions/la-norme/pdfs/norm)
+> II.7
+> Macros and Pre-processors
+> Mandatory part
+> ...
+> • All #define created to bypass the norm and/or obfuscate code are forbidden. This point must be checked by a human».
+
+[The previous statement of the rule](https://forum.intra.42.fr/topics/20404/messages/last) is discussed in another article..
+
+I ask you to note that the rule consists of two parts: “bypass of Norm”, “code obfuscation”. I propose to deal with each separately.
+
+**!** _Legend. In the article, we will call both object-like macros and function-like macros by one term “macro”. In this case, the first will be referred to as preprocessor constants, and the second, as preprocessor variables._ **!**
+~~~
+#define <identifier> <replacement token list>                    // object-like macro
+#define <identifier>(<parameter list>) <replacement token list>  // function-like macro, note parameters
+~~~
+
+## «bypass the norm»
+I insist that definition two is equivalent to definition one: 
+1. «**_All #define created to bypass the norm code are forbidden_**».
+2. **_Banned all macros, the use of which led to the fact that the code that does not violate the rules, after the macro substitutions violates them._**
+
+You can do macro substitution manually, you can do it in your mind, and at least most of this work can be assigned to a machine. Use the gcc command with the -E parameters to display the results of the macro substitution (you can then remove the extra entries with sed or grep, if you find good combinations, please write to me), or -E -dM to get a list of all macros, and then use This is a list for compiling some code in [specialized for this service](https://godbolt.org/) (select gcc и -E)
+~~~bash
+gcc your_function.c -E -dM
+~~~
+Now you can check the code if it violates the Norm. By the way, I am sure that this part can still be automated. It is a pity that this has not yet been done. But maybe you can do it!
+
+### What is most often violated using macros:
+1. II.2 Formatting Mandatory part
+> **One instruction per line**.
+>> 
+~~~C
+#define SWAP(a,b,type) {type ttttttttt=a;a=b;b=ttttttttt;}
+~~~
+~~~C
+#define SWAP(a, b) do { typeof(a) temp = a; a = b; b = temp; } while (0)
+~~~
+~~~C
+#define MACRO(num, str) {printf("%d", num); printf(" is");}
+~~~
+2. II.7 Macros and Pre-processors Mandatory part
+> **Multiline macros are forbidden.**
+>> 
+~~~C
+#define MACRO(num, str) {\
+printf("%d", num);\
+printf(" is");\
+}
+~~~
+~~~C
+#define MACRO "some very very very very very very very \
+long text"
+~~~
+3. This violation is situational (You can send an example when it will be a mistake, and an example when it will not.). II.2 Formatting Mandatory part
+> **Each line must be at most 80 columns wide, comments included. Warning : a tabulation doesn’t count as a column, but as the number of spaces it represents.**
+
+4. [Discussed paragraph rules](https://forum.intra.42.fr/topics/20404/messages/last), most likely it still prohibits such macro substitutions of the preprocessor constants: II.7 Macros and Pre-processors Mandatory part.
+> **Preprocessor constants (or #define) you create must be used only for associate
+literal and constant values.**  
+>> 
+~~~C
+#define IF if(
+#define THEN ) {
+#define FI }
+#define FALL_THROUGH if(false)
+#define OR : case
+#define DEFAULT break; default
+#define WHICH { if(false) {
+#define END_WHICH } }
+…
+~~~  
+
+This clause will most likely be used to turn the C syntax into something similar to the syntax of another language. Meet him in the next part of the article. : smile:
+
+## "code obfuscation"
+This is a pretty broad topic. Yes, it does not have strict rules, but please do not consider that this means that it is allowed or worse is forbidden anything at all that fits into other rules. The intuition of many millions of C programmers and similar languages over the years has developed examples of good and bad practice of using macros. Gaining this invaluable knowledge, you can read through articles and discussions on the Internet. Perhaps to open this topic well, deserves an independent article. Here I will limit myself to bringing several links:
+1. [Why are preprocessor macros evil and what are the alternatives?](https://stackoverflow.com/questions/14041453/why-are-preprocessor-macros-evil-and-what-are-the-alternatives)
+2. [What is the worst real-world macros/pre-processor abuse you've ever come across?](https://stackoverflow.com/questions/652788/what-is-the-worst-real-world-macros-pre-processor-abuse-youve-ever-come-across)
+3. [Using Preprocessors to change language Syntax [closed]](https://stackoverflow.com/questions/7311544/using-preprocessors-to-change-language-syntax)
+4. [How to properly use macros in C](https://pmihaylov.com/macros-in-c/)
+5. [Macros: why they're evil](https://scienceblogs.com/goodmath/2007/12/17/macros-why-theyre-evil)
+6. [Code Craft: When #define is Considered Harmful](https://hackaday.com/2015/10/16/code-craft-when-define-is-considered-harmful/)
+7. [Why is it a bad practice to use C or C++ macros?](https://www.quora.com/Why-is-it-a-bad-practice-to-use-C-or-C++-macros)
+

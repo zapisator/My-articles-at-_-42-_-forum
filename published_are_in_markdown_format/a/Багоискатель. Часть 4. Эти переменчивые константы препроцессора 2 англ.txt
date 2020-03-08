@@ -1,0 +1,136 @@
+﻿# These changeable preprocessor constants.
+
+> C programmers, having reached a certain level of qualification, will definitely encounter one of the features of this language - macros. Almost all other languages have no analog macros. And this is no accident. Using macros can be very insecure. They hide a number of features, the specifics of which do not always lie on the surface.
+##### Such motivation for regulating the use of macros, information can be found on one of the [sites](https://tproger.ru/translations/c-macro/).
+
+We will talk about the meaning of the rule section “II.7 Macros and Pre-processors. Mandatory part" Norm 2.0.2 English and French versions.
+__English version of Norm 2.0.2__
+> - Preprocessor constants (or #define) you create must be used only for associate literal and constant values.
+
+__French version of Norm 2.0.2__
+> - Les constantes de préprocesseur (#define) que vous créez ne doivent être utilisés
+que pour associer des valeurs littérales et constantes, et rien d’autre.
+
+Do you understand everything in this rule? Many will say: "Yes." If the sentence is understandable in general, does it follow from this that its parts are understood? The answer is also yes. The answer is no, would probably be connected with some kind of mysticism. In this article, without otherworldly forces, only with common sense, logic and rationality we will try to find the meaning of this item of the rules. Getting started.
+
+## Questions to answer:
+- what parts is the proposal.
+- what each part of a sentence means.
+
+### Parsing [sentences to parts](https://en.wikipedia.org/wiki/Phrase_structure_rules)
+If you want, you can resort to using robots to analyze the sentence:
+
+[tree parsing sentences. Option 1.][Tree parsing sentences. Option 1.]
+[Decoding.][Explanation of the legend of the diagram for option 1]
+![Diagram 1. Tree of the syntactic analysis by the first variant.](https://cdn1.savepice.ru/uploads/2019/3/20/a791fbdc13837bcae4f63079e5ac2f07-full.png)
+
+[Another way to draw a parse tree.](Https://visl.sdu.dk/visl/en/parsing/automatic/trees.php)
+![Diagram 2. Tree of the syntactic analysis by the first variant.](https://cdn1.savepice.ru/uploads/2019/3/20/ee5710384ba193cfcba3b8a2684c9f66-full.png)
+
+[tree parsing sentences. Option 2.][Tree parsing sentences. Option 2.]
+
+[tree parsing sentences. Option 1.]: https://www.link.cs.cmu.edu/cgi-bin/link/construct-page-4.cgi#submit
+[Explanation of the legend of the diagram for option 1]: https://visl.sdu.dk/visl2/info/world_of_grammar.pdf
+[tree parsing sentences. Option 2.]: https://yohasebe.com/rsyntaxtree/
+
+Sentence:
+- The group of the subject *Preprocessor constants (or # define) you create*.
+ - ...
+- The group of the predicate *must be used*.
+ - ...
+- Group circumstances *only for associate literal and constant values*.
+ - ...
+
+## Then we sort through each group in turn.
+
+### Preliminary considerations.
+
+What is included in the preprocessor:
+> Preprocessor performs the following actions:
+> - replacement of the corresponding digraphs and trigraphs with the equivalent symbols "#" and "\";
+> - remove escaped line feed characters;
+> - replacing line and block comments with empty lines (with removal of surrounding spaces and tabs);
+> - insert (enable) the contents of an arbitrary file (#include);
+> - __*macro substitutions (# define)*__;
+> - conditional compilation (#if, #ifdef, #elif, #else, #endif);
+> - output messages (#warning, #error).
+
+Separately, I note that the preprocessor works with the tokens defined by [the C standard](http://read.pudn.com/downloads133/doc/565041/ANSI_ISO%2B9899-1990%2B%5B1%5D.pdf) and only with them. Preprocessor tokens after a macro-replacement are only displayed in the C token.
+«6.1 Lexical elements. Syntax»
+
+>  Each preprocessing token that is converted to a token shall have the lexical form of a keyword, an identifier, a string literal, an operator, or a punctuator.
+
+|	token		|	preprocessing-token	|
+|	-------------	|	-------------		|
+|	<keyword>	|				|
+|			|	<header-name>		|
+|	<identifier>	|	<identifier>		|
+|	<constant>	|				|
+|			|	<character-constant>	|
+|	<string-literal>	|	<string-literal>		|
+|	<operator>	|	<operator>		|
+|	<punctuator>	|	<punctuator>		|
+|			|	<pp-number>		|
+|			|	<each non-white-space character that cannot be one of the above>	|
+
+We’ll especially focus on the item __*“macro substitutions (# define)”*__ The syntax and meaning of macro substitutions is defined by [the C standard](http://read.pudn.com/downloads133/doc/565041/ANSI_ISO%2B9899-1990%2B%5B1%5D.pdf): «6.8 Preprocessing directives. 6.8.3 Macro replacement». If you draw this picture with large strokes, you get the following:
+
+>  1. `#define <identifier> <replacement token list>`                    // `object-like macro`
+>  2. `#define <identifier>(<parameter list>) <replacement token list>`  // `function-like macro`, note parameters
+___
+
+### Subject Group **Preprocessor constants (or #define) you create**.
+The basis for this issue is the section of C standard "6.8.3 Macro replacement". "Preprocessor constants" is not defined by the standard (See table above). Thus, one can only hope to understand this term, through the study of word usage. It is unlikely that there is another available source of word usage other than the search engine results on the Internet.
+
+The `Preprocessor Constant` is defined explicitly or in context as an `object-like macro`, hence the `function-like macro` is often defined in these sources as `macro` ([1](https://habr.com/ru/post/246971/), [2](https://www.cprogramming.com/tutorial/cpreprocessor.html), [3](https://ru.wikipedia.org/wiki/Препроцессор_Си)
+Another definition can be found in [4](https://books.google.ru/books?id=PsRKDAAAQBAJ&pg=PA56&lpg=PA56&dq=Preprocessor+constants&source=bl&ots=ztzrlYndAX&sig=ACfU3U2dsc-ibcVM-ucYT_Cbg0SSja4T6A&hl=ru&sa=X&ved=2ahUKEwi1jt7ChI_hAhXxlYsKHTlFDCo4ChDoATACegQIBhAB#v=onepage&q=Preprocessor%20constants&f=false),where the `preprocessor constant` is used interchangeably with` symbolic constants`, this same point of view can be found in
+ [5](https://www.quora.com/What-are-symbolic-constants-in-c-How-you-declare-them), [6](https://stackoverflow.com/questions/19379353/symbolic-constants-in-c-define-statement), [7](http://meramind.com/c-programming/symbolic-constants-c/).
+___
+> `Symbolic Constant` is a name that substitutes for a sequence of characters or a numeric constant, a character constant or a string constant.
+
+Thus, although the term `preprocessor constant' is not defined in the C standard, there is a language practice introducing a definition of this concept, and this definition is not unique. There is a common in these definitions and differences.
+The first.
+`#define <identifier> <list of replacing tokens>`
+The second.
+`#define <identifier> <narrowed list of replacing tokens>`, where `<narrowed list of replacing tokens>`: `<Integer Literals>`, `<Floating-point Literals>`, `<Character Constants>`, `<String Literals>` and nothing else (see what a literal is in a paragraph *literal*)
+
+### The predicate group __must be used__.
+The section seems very obvious to me, so I do not give explanations on it.
+
+### Group circumstances **only for associate literal and constant values**.
+
+#### only for associate
+The meaning of the word associate is unclear. This word can be defined as both an adjective and a verb. However, with this substitution, the machine translation Google translates "must be used for associate” as a verb or noun with the meaning of the action: "should be used for associate object one and object two."
+
+I especially note that the word “only” is dependent on the word associate and no other words. Thus, `preprocessor constant` connects only what is indicated behind this word. _If you understand what else the #define directive can do with the `preprocessor constant`, write._
+
+#### literal and constant values
+##### literal
+This word is found in the standard 28 times. 27 times in a string literal and 1 time as an adjective “The success of literal matches” in the meaning of “literal”. It seems that none of these values сan be taken as used in the proposal. We'll have to turn to the practice of word usage on the Internet.
+##### [literal](https://en.wikipedia.org/wiki/Literal_%28computer_programming%29) and [constant](https://en.wikipedia.org/wiki/Constant_%28computer_programming%29) values 
+The network is not a little use of both terms as synonyms:
+1. Constant is the same as literal.
+«Constants refer to fixed values that the program may not alter during its execution. These fixed values are also called literals». [1](https://www.tutorialspoint.com/cprogramming/c_constants.htm), [2](https://www.geeksforgeeks.org/constants-in-c/), [3](https://www.w3schools.in/c-tutorial/constants/), [4](https://codeforwin.org/2017/08/literals-c-programming.html), [5](https://www.quora.com/What-are-constants-in-C)
+So we get that the constant is a synonym for one of the members of the set: Integer Literals, Floating-point Literals, Character Constants, String Literals.
+2. The constant includes the literal, but is not equal to it. A constant is some name for the immediate value, which is the literal. The role of mediation is emphasized.
+[1](https://stackoverflow.com/questions/11732795/are-the-literal-and-constant-the-same-concept-in-c), [2](https://www.diffen.com/difference/Constant_vs_Literal), [3](https://www.tutorialspoint.com/What-is-the-difference-between-literal-and-constant-in-Cplusplus)
+3. Expansion of the idea of a constant. This note discusses literal (specified directly in the code) and symbolic (specified indirectly through the preprocessor) constants. [«Summary: this tutorial introduces you to C constants including literal constants and symbolic constants.»](http://www.zentut.com/c-tutorial/c-constants/)
+
+#### Summarizing the section for ** Circumstances group **
+Although anyway confidence in the found understanding of this phrase will not be maximal, the greatest meaning of “only for associate literal and constant values” is: **1** _only for linking constant and literal values_. Generally speaking, this listing is open. Those. they can be associated with something else, but one of the indicated elements must be present in this bundle. We bring this to functional notation. _Connect((constants or literals), something)_. In this case, the preprocessor constant cannot act as a literal. Then: _Connect(preprocessor constant, something)_. And if you involve another translation of the French text, it seems that there is more certainty: **2** _only to link constant and literal values, and nothing more_. So the transfer is already closed. And the verb Connect is a double function: _Connect(preprocessor constant, (constants or literals))_. Note that there is another value that intuitively suggests here: **3** _Connect(constant, literal)_. If the French version of the rules is considered more important than English, then only 2 or 3 are possible. Although it is not possible to establish which of the two values means.
+
+In this case, in none of the cases it is impossible to understand the meaning of the word constant includes a preprocessor constant equal to the definition, or does not include. Therefore, the following options are possible:
+1. `#define <identifier> <any number of tokens from the list: identifier OR Integer Literals OR Floating point Literals OR Character Constants OR String Literals>`
+2. `# define <identifier> <only one token from the list: Integer Literals OR Floating-point Literals OR Character Constants OR String Literals>`
+
+## Conclusion.
+Unfortunately, the most important document for regulating the design of programs by students of the school "42" contains sections that are expressed very unreliably, the ambiguity of which reaches an almost unlimited number of options, although there are probably only two basic patterns. I believe that the norms in this article should be rewritten so that it is clear and unambiguous. For this, it would be good if it became clear which of the two proposed options is correct.
+
+1. `#define <identifier> <any number of tokens from the list: identifier OR Integer Literals OR Floating point Literals OR Character Constants OR String Literals>`
+2. `# define <identifier> <only one token from the list: Integer Literals OR Floating-point Literals OR Character Constants OR String Literals>`
+
+Both define the #define directive for cases where definitions (identifiers) have no parameters. In this case, in the first case, a huge number of combinations are collected that can be resolved. The second case is an example of an extreme when exactly one particular macro substitution pattern is allowed. There are a lot of combinations. The second case, there is a special case of the first, if you carefully consider them.
+
+I know that many students are very confident about what this paragraph of the rules means. Although if you put them all together and interview them, it turns out that their subjects of confidence are not similar to each other. However, this does not prevent us from reducing assessments or not being able to argue when this reduction was proposed. In my opinion it is more useful and painless for themselves and others to give themselves a clear account of the fact that there are points of rules, norms, other sections of school project assignments that do not have a single interpretation and refrain from showing toxicity.
+
+#### I wish you happiness and interest in studying.

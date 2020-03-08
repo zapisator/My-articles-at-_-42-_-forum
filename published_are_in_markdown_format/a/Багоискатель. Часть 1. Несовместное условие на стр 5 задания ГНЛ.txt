@@ -1,0 +1,45 @@
+﻿Bugfinder. Get_Next_Line.
+
+I bring to your attention the first attempt at writing in the cycle “Bugfinder”. Today we will talk about the incompatible part of the task in the English version of the project Get_Next_Line *.
+
+On page 5:
+    • – You must only submit two files :get_next_line.c and get_next_line.h
+    • 	…
+    • 	– You must submit a file called author containing your username followed by a ’\n’ at the root of your repository
+
+You have to upload only two files A and B. (This is the same as: it is impossible for submission to be less or more than 2 files. Both of these files must be one A, and the second B). You have to submit the file C. (C is obviously the third file, and is not included in the group of A and B). Obviously, 1 is not equal to two, and two is not equal to 3. It is impossible to submit only 2 files for delivery and submit 3.
+
+The law of Duns Scotus states that anything follows from a lie. Maybe the fact that I have already passed GNL? But the project is still not counted. I will give an interesting example from the book.
+
+«WHAT IS THE NAME OF THIS BOOK?» by Raymond M. Smullyan
+
+«244. Russell and the Pope. One philosopher was shocked when Bertrand Russell told him that a false proposition implies any proposition. He said, "You mean that from the statement that two plus two equals five it follows that you are the Pope?" Russell replied "Yes." The philosopher asked, "Can you prove this?" Russell replied, "Certainly," and contrived the following proof on the spot: 
+    • (1) Suppose 2+2=5. 
+    • (2) Subtracting two from both sides of the equation we get 2=3. 
+    • (3) Transposing, we get 3 =2. 
+    • (4) Subtracting one from both sides, we get 2 = 1. 
+Now, the Pope and I are two. Since two equals one, then the Pope and I are one. Hence I am the Pope.»
+____
+Багоискатель. Get_Next_Line
+
+Предлагаю вашему вниманию первую пробу пера в цикле «Багоискатель». Сегодня речь пойдёт о несовместном участке задания в английской версии проекта Get_Next_Line*.
+
+На странице 5:
+    • – You must only submit two files :get_next_line.c and get_next_line.h
+    • …
+    • – You must submit a file called author containing your username followed by a ’\n’ at the root of your repository
+
+Вы должны залить только два файла А и Б. (Это то же, что: невозможно, чтобы было подано на сдачу меньше или больше, чем 2 файла. Оба этих файла должы быть один А, а второй Б). Вы должны залить файл Г. (Г очевидно является третьим файлом, и не входит в группу из А и Б). Очевидно, что 1 не равно два, а два не равно 3. Невозможно подать на сдачу только 2 файла и подать 3.
+
+Закон дунса скота гласит, что из лжи следует что угодно. Может и то, что я уже сдал GNL? Но проект всё ещё не засчитан. Приведу интересный пример из книги 
+
+Рэймонд Смаллиан "Как же называется эта книга?"
+«244. Расселл и папа римский. Один философ испытал сильнейшее потрясение, узнав от Бертрана Расселла, что из ложного утверждения следует любое утверждение. Он спросил: "Вы всерьез считаете, что из утверждения  "два плюс два - пять" следует, что вы папа римский?" Расселл ответил утвердительно. "И вы можете доказать это?" - продолжал сомневаться философ. "Конечно!" - последовал уверенный ответ, и Расселл тотчас же предложил такое доказательство.
+    • 1) Предположим, что 2 + 2 = 5.
+    • 2) Вычтем из обеих частей по 2: 2 = 3.
+    • 3) Переставим правую и левую части: 3 = 2.
+    • 4) Вычтем из обеих частей по 1: 2 = 1.
+Папа римский и я - нас двое. Так как 2 = 1, то папа римский и я - одно лицо. Следовательно, я - папа римский».
+
+* https://cdn.intra.42.fr/pdf/pdf/776/get_next_line.en.pdf
+
